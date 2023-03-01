@@ -17,7 +17,7 @@ func TestTime(t *testing.T) {
 	resp := rec.Result()
 	body := rec.Body
 	fmt.Println(resp.StatusCode)
-	//fmt.Println(resp.Header)
+	fmt.Println(resp.Header)
 	fmt.Println(body)
 	// res := rec.Result()
 	// if res.StatusCode != http.StatusOK {
@@ -25,4 +25,23 @@ func TestTime(t *testing.T) {
 	// }
 	//
 
+}
+
+func TestHello(t *testing.T) {
+	request, _ := http.NewRequest("GET", "/hello", nil)
+
+	// record the simulation of HTTP response
+	response := httptest.NewRecorder()
+
+	// run the function we want to test
+	helloHandler(response, request)
+
+	// check if the result is what we expect
+	got := response.Body.String()
+	want := "Hello "
+	if got != want {
+
+		// if the result is not correct print error
+		t.Errorf("got %v, want %v", got, want)
+	}
 }

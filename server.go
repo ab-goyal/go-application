@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -35,6 +36,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Enter the name:")
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
+
 	fmt.Fprintf(w, "Hello %s", text)
 }
 
@@ -58,9 +60,14 @@ func main() {
 	http.HandleFunc("/form", formHandler)
 	http.HandleFunc("/mytime", timeHandler)
 	http.HandleFunc("/hello", helloHandler)
+	var port = "3000"
+	var host = "localhost"
+	flag.StringVar(&port, "port", port, "Port number")
+	flag.Parse()
+	fmt.Println("You seem to prefer", port)
 
-	fmt.Printf("Starting server at port 3000\n")
-	if err := http.ListenAndServe(":3000", nil); err != nil {
+	fmt.Printf("Starting server at port%v\n", port)
+	if err := http.ListenAndServe(host+":"+port, nil); err != nil {
 		log.Fatal(err)
 	}
 }
