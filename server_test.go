@@ -10,7 +10,7 @@ import (
 )
 
 func TestFormHandler(t *testing.T) {
-	// Create a new request with form data
+	// Create a new request with form data.
 	form := url.Values{}
 	form.Add("name", "John")
 	form.Add("address", "123 Main St")
