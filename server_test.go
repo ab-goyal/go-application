@@ -3,9 +3,41 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 )
+
+func TestFormHandler(t *testing.T) {
+	// Create a new request with form data.
+	form := url.Values{}
+	form.Add("name", "John")
+	form.Add("address", "123 Main St")
+	req, err := http.NewRequest("POST", "/form", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a new response recorder
+	rr := httptest.NewRecorder()
+
+	// Call the formHandler function with the new request and response recorder
+	handler := http.HandlerFunc(formHandler)
+	handler.ServeHTTP(rr, req)
+
+	// Check the response status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// Check the response body
+	expected := "POST request successful\nName = John\nAddress = 123 Main St\n"
+	if rr.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
+	}
+}
 
 func TestTime(t *testing.T) {
 	req, err := http.NewRequest("GET", "/mytime", nil)
@@ -28,22 +60,6 @@ func TestTime(t *testing.T) {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			body, "The current time is: "+expectedTime+"\n"+message)
 	}
-	// req, err := http.NewRequest("GET", "localhost:3000/mytime", nil)
-	// if err != nil {
-	// 	t.Fatalf("could not create request: %v", err)
-	// }
-	// rec := httptest.NewRecorder()
-	// timeHandler(rec, req)
-	// resp := rec.Result()
-	// body := rec.Body
-	// fmt.Println(resp.StatusCode)
-	// fmt.Println(resp.Header)
-	// fmt.Println(body)
-	// res := rec.Result()
-	// if res.StatusCode != http.StatusOK {
-	// 	t.Errorf("expected status OK; got %v", res.Status)
-	// }
-	//
 
 }
 
