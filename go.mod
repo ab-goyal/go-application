@@ -1,3 +1,3 @@
-module go-server
+module go-web-server
 
 go 1.20

@@ -1,14 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
 var message string
+var kvFile string
+var kvMap = make(map[string]string)
 
 func formHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -58,10 +63,49 @@ func timeHandler(w http.ResponseWriter, r *http.Request) {
 	//t.Format("01-02-2006 15:04:05 Monday")
 	fmt.Fprintf(w, "The current time is: %s\n", t.Format("01-02-2006 15:04:05 Monday"))
 	fmt.Fprintf(w, message)
+	printKVMap(w)
+}
+
+func printKVMap(w http.ResponseWriter) {
+	if len(kvMap) == 0 {
+		return
+	}
+	fmt.Fprintln(w, "Key-Value Pairs:")
+	for k, v := range kvMap {
+		fmt.Fprintf(w, "%s=%s\n", k, v)
+	}
 }
 func main() {
 
 	flag.StringVar(&message, "message", "Hello this is the default message", "message to be printed on the / and /hello endpoints")
+	flag.StringVar(&kvFile, "kvfile", "", "Path to file containing key-value pairs")
+
+	// Load key-value pairs from file
+	if kvFile != "" {
+		file, err := os.Open(kvFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to open key-value file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := scanner.Text()
+			pair := strings.Split(line, "=")
+			if len(pair) != 2 {
+				fmt.Fprintf(os.Stderr, "Invalid key-value pair: %v\n", line)
+				os.Exit(1)
+			}
+			kvMap[pair[0]] = pair[1]
+		}
+
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to read key-value file: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
 	fileServer := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fileServer)
 	http.HandleFunc("/form", formHandler)
@@ -72,6 +116,7 @@ func main() {
 
 		// Call the helloHandler with the name parameter
 		helloHandler(w, r, name)
+		printKVMap(w)
 	})
 
 	var port = "3000"

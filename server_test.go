@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -85,5 +86,41 @@ func TestHello(t *testing.T) {
 	if body := rr.Body.String(); body != expectedResponse {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			body, expectedResponse)
+	}
+}
+
+func TestPrintKVMap(t *testing.T) {
+	// Create a new buffer to capture the output
+	buf := new(bytes.Buffer)
+
+	// Create a sample key-value map
+	kvMap := map[string]string{
+		"name": "John",
+		"age":  "30",
+		"city": "New York",
+	}
+
+	// Call the function with the sample map and the buffer
+	printKVMap(kvMap, fakeResponseWriter)
+
+	// Check the output against the expected result
+	expected := "name: John\nage: 30\ncity: New York\n"
+	if buf.String() != expected {
+		t.Errorf("Expected '%s' but got '%s'", expected, buf.String())
+	}
+
+	type fakeResponseWriter struct {
+		buf *bytes.Buffer
+	}
+	
+	func (w fakeResponseWriter) Header() http.Header {
+		return http.Header{}
+	}
+	
+	func (w fakeResponseWriter) Write(b []byte) (int, error) {
+		return w.buf.Write(b)
+	}
+	
+	func (w fakeResponseWriter) WriteHeader(statusCode int) {
 	}
 }
